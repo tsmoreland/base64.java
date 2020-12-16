@@ -10,36 +10,23 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-package moreland.base64.cli;
+package moreland.base64.cli.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+public class GuardAgainst {
+    
+    private GuardAgainst() {
+        // hidden constructor for "static" class
+    }
 
-@SpringBootApplication
-public class Application implements CommandLineRunner {
-
-	private Logger logger = LoggerFactory.getLogger(Application.class);
-
-	@Autowired
-	private Base64Service fileBase64Service;
-
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
-
-	@Override
-	public void run(String... args) throws Exception {
-		logger.info("provided arguments: {}", args.length);
-
-		if (fileBase64Service == null) {
-			logger.error("error injecting service");
-		}
-		 
-
-	}
-
+    /**
+     * Throws {@code IllegalArgumentException} if {@code argument} is null
+     * @param argument argument to check
+     * @param argumentName argument name to be used as message in exception
+     * @throws IllegalArgumentException if argument is null
+     */
+    public static void argumentBeingNull(Object argument, String argumentName) {
+        if (argument == null) {
+            throw new IllegalArgumentException(argumentName);
+        }
+    }
 }

@@ -10,36 +10,44 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
+
 package moreland.base64.cli;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.util.stream.Stream;
 
-@SpringBootApplication
-public class Application implements CommandLineRunner {
+public interface Base64Service {
+    
+    /**
+     * Encode a Byte array to base64 encoded string
+     * @param source
+     * @return base64 encoded String
+     */
+    String encode(byte[] source);
 
-	private Logger logger = LoggerFactory.getLogger(Application.class);
+    /**
+     * Encode a Stream of Bytes to base64 encoded string
+     * @param source
+     * @return base64 encoded String
+     */
+    String encode(Stream<Byte> source);
 
-	@Autowired
-	private Base64Service fileBase64Service;
+    /**
+     * Encode a String of a base64 encoded string
+     * @param source
+     * @return base64 encoded String
+     */
+    String encode(String source);
 
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
-
-	@Override
-	public void run(String... args) throws Exception {
-		logger.info("provided arguments: {}", args.length);
-
-		if (fileBase64Service == null) {
-			logger.error("error injecting service");
-		}
-		 
-
-	}
-
+    /**
+     * Decode a Bas64 encoded String to byte array
+     * @param source
+     * @return byte array of decoded {@code source}
+     */
+    byte[] decode(String source);
+    /**
+     * Decode a Bas64 encoded String to String
+     * @param source
+     * @return String of decoded {@code source}
+     */
+    String decodeToString(String source);
 }
