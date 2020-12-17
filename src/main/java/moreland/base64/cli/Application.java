@@ -29,7 +29,7 @@ public class Application implements CommandLineRunner {
 	private Logger logger = LoggerFactory.getLogger(Application.class);
 
 	@Autowired
-	private Base64Service fileBase64Service;
+	private Base64Service simpleBase64Service;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
@@ -39,7 +39,7 @@ public class Application implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		logger.info("provided arguments: {}", args.length);
 
-		if (fileBase64Service == null) {
+		if (simpleBase64Service == null) {
 			logger.error("error injecting service");
 		}
 		 

@@ -22,9 +22,9 @@ import org.springframework.stereotype.Service;
 
 import moreland.base64.cli.internal.GuardAgainst;
 
-@Service("fileBase64Service")
+@Service("simpleBase64Service")
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
-public class FileBase64Service implements Base64Service {
+public class SimpleBase64Service implements Base64Service {
 
     private static final String SOURCE_ARGUMENT_NAME = "source";
 
