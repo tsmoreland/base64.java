@@ -14,6 +14,7 @@ package moreland.base64.cli.internal;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * CLI Operations
@@ -38,4 +39,14 @@ public enum Operation {
         return operation.orElse(Operation.UNSUPPORTED);
     }
 
+    public static Optional<Operation> fromString(String value) {
+
+        final String upperValue = value != null 
+            ? value.toUpperCase()
+            : "";
+
+        return Arrays.stream(Operation.class.getEnumConstants())
+            .filter(op -> op.toString().equals(upperValue))
+            .findFirst();
+    }
 }
