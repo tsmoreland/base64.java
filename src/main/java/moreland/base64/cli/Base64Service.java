@@ -10,52 +10,108 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-
 package moreland.base64.cli;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.stream.Stream;
 
-public interface Base64Service {
-    
-    /**
-     * Encode a Byte array to base64 encoded string
-     * @param source
-     * @return base64 encoded String
-     */
-    String encode(byte[] source);
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import moreland.base64.cli.internal.GuardAgainst;
+
+@Service("encoderService")
+@Scope(value = BeanDefinition.SCOPE_SINGLETON)
+public class Base64Service implements EncoderService {
+
+    private static final String SOURCE_ARGUMENT_NAME = "source";
+    private Logger logger = LoggerFactory.getLogger(Base64Service.class);
 
     /**
-     * Encode a Stream of Bytes to base64 encoded string
-     * @param source
-     * @return base64 encoded String
+     * {@inheritDoc}
      */
-    String encode(Stream<Byte> source);
+    @Override
+    public String encode(byte[] source) {
+        GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
+
+        return Base64.getEncoder().encodeToString(source);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String encode(Stream<Byte> source) {
+        GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
+
+        var sourceArray = source.toArray(Byte[]::new);
+        var convertedSourceArray = new byte[sourceArray.length];
+        System.arraycopy(sourceArray, 0, convertedSourceArray, 0, sourceArray.length);
+
+        return encode(convertedSourceArray);
+    }
 
     /**
      * Encode a Stream of Bytes to base64 encoded string
      * @param streamSource 
      * @return base64 encoded String
      */
-    String encode(InputStream streamSource);
+    public String encode(InputStream streamSource) {
+        GuardAgainst.argumentBeingNull(streamSource, "streamSource");
+
+        var buffer = new byte[3];
+        var builder = new StringBuilder();
+
+        try {
+            while (streamSource.available() > 0) {
+                int read;
+                if ((read = streamSource.read(buffer)) <= 0)
+                    break;
+                if (read == buffer.length) {
+                    builder.append(encode(buffer));
+                } else {
+                    builder.append(encode(Arrays.copyOf(buffer, read)));
+                }
+            }
+
+            return builder.toString();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return "";
+        }
+    }
 
     /**
-     * Encode a String of a base64 encoded string
-     * @param source
-     * @return base64 encoded String
+     * {@inheritDoc}
      */
-    String encode(String source);
+    @Override
+    public String encode(String source) {
+        GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
+        return encode(source.getBytes());
+    }
 
     /**
-     * Decode a Bas64 encoded String to byte array
-     * @param source
-     * @return byte array of decoded {@code source}
+     * {@inheritDoc}
      */
-    byte[] decode(String source);
+    @Override
+    public byte[] decode(String source) {
+        GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
+        return Base64.getDecoder().decode(source);
+    }
+
     /**
-     * Decode a Bas64 encoded String to String
-     * @param source
-     * @return String of decoded {@code source}
+     * {@inheritDoc}
      */
-    String decodeToString(String source);
+    @Override
+    public String decodeToString(String source) {
+        GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
+        return new String(decode(source), StandardCharsets.UTF_8);
+    }
+    
 }

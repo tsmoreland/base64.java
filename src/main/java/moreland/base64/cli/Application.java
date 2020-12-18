@@ -15,7 +15,6 @@ package moreland.base64.cli;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -31,9 +30,10 @@ import moreland.base64.cli.internal.Operation;
 public class Application implements CommandLineRunner {
 
 	private Logger logger = LoggerFactory.getLogger(Application.class);
+	private final String LINE_SEPARATOR = System.lineSeparator();
 
 	@Autowired
-	private Base64Service base64Service;
+	private EncoderService encoderService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
@@ -44,7 +44,7 @@ public class Application implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		logger.info("provided arguments: {}", args.length);
 
-		if (base64Service == null) {
+		if (encoderService == null) {
 			logger.error("error injecting service");
 		}
 
@@ -77,9 +77,9 @@ public class Application implements CommandLineRunner {
 		try (var fileStream = new FileInputStream(file);
 			 var bufferedInputStream = new BufferedInputStream(fileStream)) {
 
-			var encoded = base64Service.encode(fileStream);
+			var encoded = encoderService.encode(fileStream);
 
-			logger.info("{}{}", System.lineSeparator(), encoded);
+			logger.info("{}{}", LINE_SEPARATOR, encoded);
 
 			return true;
 
