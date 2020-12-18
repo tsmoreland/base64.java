@@ -12,21 +12,25 @@
 //
 package moreland.base64.cli;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import moreland.base64.cli.internal.GuardAgainst;
 
-@Service("simpleBase64Service")
+@Service("base64Service")
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class SimpleBase64Service implements Base64Service {
 
     private static final String SOURCE_ARGUMENT_NAME = "source";
+    private Logger logger = LoggerFactory.getLogger(SimpleBase64Service.class);
 
     /**
      * {@inheritDoc}
@@ -50,6 +54,32 @@ public class SimpleBase64Service implements Base64Service {
         System.arraycopy(sourceArray, 0, convertedSourceArray, 0, sourceArray.length);
 
         return encode(convertedSourceArray);
+    }
+
+    /**
+     * Encode a Stream of Bytes to base64 encoded string
+     * @param streamSource 
+     * @return base64 encoded String
+     */
+    public String encode(InputStream streamSource) {
+        GuardAgainst.argumentBeingNull(streamSource, "streamSource");
+
+        var buffer = new byte[3];
+        var builder = new StringBuilder();
+
+        try {
+            while (streamSource.available() > 0) {
+                int read;
+                if ((read = streamSource.read(buffer)) <= 0)
+                    break;
+                builder.append(new String(buffer, 0, read, StandardCharsets.UTF_8));
+            }
+
+            return builder.toString();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return "";
+        }
     }
 
     /**

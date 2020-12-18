@@ -12,7 +12,11 @@
 //
 package moreland.base64.cli;
 
-import java.util.List;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,32 +33,69 @@ public class Application implements CommandLineRunner {
 	private Logger logger = LoggerFactory.getLogger(Application.class);
 
 	@Autowired
-	private Base64Service simpleBase64Service;
+	private Base64Service base64Service;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
 
 	@Override
+	@SuppressWarnings({"java:S2589"}) // warning doesn't yet see result from switch expression
 	public void run(String... args) throws Exception {
 		logger.info("provided arguments: {}", args.length);
 
-		if (simpleBase64Service == null) {
+		if (base64Service == null) {
 			logger.error("error injecting service");
 		}
-		 
-		var arguments = List.of(args);
-		var operation = Operation.fromArguments(arguments);
 
-		var result = switch(operation) {
-			case ENCODE -> 1;
-			case DECODE -> 2;
-			case UNSUPPORTED -> 0;
+		if (args.length < 2) {
+			logger.error("Insufficient arguments");
+			return;
+		}
+
+		var operation = Operation.fromString(args[0]).orElse(Operation.UNSUPPORTED);
+		final var inputFilename = args[1];
+
+		boolean result = switch(operation) {
+			case ENCODE -> encode(inputFilename);
+			case DECODE -> decode(inputFilename);
+			case UNSUPPORTED -> false;
 			default -> throw new IllegalStateException("Unsupported Operation");
 		};
 
-		System.out.println(result);
+		if (!result) {
+			logger.error("{} for {} failed.", operation, inputFilename);
+		}
+	}
 
+	private boolean encode(final String filename) {
+		var file = new File(filename);
+		if (!file.exists()) {
+			return false;
+		}
+
+		try (var fileStream = new FileInputStream(file);
+			 var bufferedInputStream = new BufferedInputStream(fileStream)) {
+
+			var encoded = base64Service.encode(fileStream);
+
+			logger.info("{}{}", System.lineSeparator(), encoded);
+
+			return true;
+
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			return false;
+		}
+
+	}
+	private boolean decode(final String filename) {
+		var file = new File(filename);
+		if (!file.exists()) {
+			return false;
+		}
+
+		return true;
 	}
 
 }

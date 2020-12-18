@@ -13,6 +13,7 @@
 
 package moreland.base64.cli;
 
+import java.io.InputStream;
 import java.util.stream.Stream;
 
 public interface Base64Service {
@@ -30,6 +31,13 @@ public interface Base64Service {
      * @return base64 encoded String
      */
     String encode(Stream<Byte> source);
+
+    /**
+     * Encode a Stream of Bytes to base64 encoded string
+     * @param streamSource 
+     * @return base64 encoded String
+     */
+    String encode(InputStream streamSource);
 
     /**
      * Encode a String of a base64 encoded string
