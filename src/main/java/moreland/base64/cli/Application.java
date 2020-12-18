@@ -12,10 +12,7 @@
 //
 package moreland.base64.cli;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
