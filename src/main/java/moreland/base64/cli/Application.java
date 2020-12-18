@@ -65,21 +65,24 @@ public class Application implements CommandLineRunner {
         }
     }
 
+    @SuppressWarnings({"java:S106"})
     private boolean encode(final String filename) {
         var encoded = fileEncoderService.encode(new File(filename));
         if (!encoded.isPresent())
             return false;
 
-        logger.info("{}", encoded.get());
+        System.out.println(encoded.get());
         return encoded.isPresent();
     }
+
+    @SuppressWarnings({"java:S106"})
     private boolean decode(final String filename) {
         var decoded = fileEncoderService.decode(new File(filename));
         if (!decoded.isPresent())
             return false;
 
         var decodedString = new String(decoded.get(), StandardCharsets.UTF_8);
-        logger.info("{}", decodedString);
+        System.out.println(decodedString);
         return true;
     }
 
