@@ -58,4 +58,18 @@ public interface EncoderService {
      * @return String of decoded {@code source}
      */
     String decodeToString(String source);
+
+    /**
+     * Decode a Bas64 encoded String to byte array
+     * @param source
+     * @return byte array of decoded {@code source}
+     */
+    byte[] decode(InputStream source);
+
+    /**
+     * Decode a Bas64 encoded String to byte array
+     * @param source
+     * @return byte array of decoded {@code source}
+     */
+    String decodeToString(InputStream source);
 }

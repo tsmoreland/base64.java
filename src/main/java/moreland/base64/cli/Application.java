@@ -16,6 +16,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,73 +30,60 @@ import moreland.base64.cli.internal.Operation;
 @SpringBootApplication
 public class Application implements CommandLineRunner {
 
-	private Logger logger = LoggerFactory.getLogger(Application.class);
-	private final String LINE_SEPARATOR = System.lineSeparator();
+    private Logger logger = LoggerFactory.getLogger(Application.class);
 
-	@Autowired
-	private EncoderService encoderService;
+    @Autowired
+    private FileEncoderService fileEncoderService;
 
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
 
-	@Override
-	@SuppressWarnings({"java:S2589"}) // warning doesn't yet see result from switch expression
-	public void run(String... args) throws Exception {
-		logger.info("provided arguments: {}", args.length);
+    @Override
+    @SuppressWarnings({"java:S2589"}) // warning doesn't yet see result from switch expression
+    public void run(String... args) throws Exception {
+        logger.info("provided arguments: {}", args.length);
 
-		if (encoderService == null) {
-			logger.error("error injecting service");
-		}
+        if (fileEncoderService == null) {
+            logger.error("error injecting service");
+        }
 
-		if (args.length < 2) {
-			logger.error("Insufficient arguments");
-			return;
-		}
+        if (args.length < 2) {
+            logger.error("Insufficient arguments");
+            return;
+        }
 
-		var operation = Operation.fromString(args[0]).orElse(Operation.UNSUPPORTED);
-		final var inputFilename = args[1];
+        var operation = Operation.fromString(args[0]).orElse(Operation.UNSUPPORTED);
+        final var inputFilename = args[1];
 
-		boolean result = switch(operation) {
-			case ENCODE -> encode(inputFilename);
-			case DECODE -> decode(inputFilename);
-			case UNSUPPORTED -> false;
-			default -> throw new IllegalStateException("Unsupported Operation");
-		};
+        boolean result = switch(operation) {
+            case ENCODE -> encode(inputFilename);
+            case DECODE -> decode(inputFilename);
+            case UNSUPPORTED -> false;
+            default -> throw new IllegalStateException("Unsupported Operation");
+        };
 
-		if (!result) {
-			logger.error("{} for {} failed.", operation, inputFilename);
-		}
-	}
+        if (!result) {
+            logger.error("{} for {} failed.", operation, inputFilename);
+        }
+    }
 
-	private boolean encode(final String filename) {
-		var file = new File(filename);
-		if (!file.exists()) {
-			return false;
-		}
+    private boolean encode(final String filename) {
+        var encoded = fileEncoderService.encode(new File(filename));
+        if (!encoded.isPresent())
+            return false;
 
-		try (var fileStream = new FileInputStream(file);
-			 var bufferedInputStream = new BufferedInputStream(fileStream)) {
+        logger.info("{}", encoded.get());
+        return encoded.isPresent();
+    }
+    private boolean decode(final String filename) {
+        var decoded = fileEncoderService.decode(new File(filename));
+        if (!decoded.isPresent())
+            return false;
 
-			var encoded = encoderService.encode(fileStream);
-
-			logger.info("{}{}", LINE_SEPARATOR, encoded);
-
-			return true;
-
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-
-	}
-	private boolean decode(final String filename) {
-		var file = new File(filename);
-		if (!file.exists()) {
-			return false;
-		}
-
-		return true;
-	}
+        var decodedString = new String(decoded.get(), StandardCharsets.UTF_8);
+        logger.info("{}", decodedString);
+        return true;
+    }
 
 }

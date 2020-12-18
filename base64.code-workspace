@@ -16,6 +16,10 @@
       ".settings": true,
       ".project": true,
       ".gitignore": true
+    },
+    "[java]": {
+      "editor.insertSpaces": true,
+      "editor.tabSize": 4
     }
   },
   "extensions": {
