@@ -13,6 +13,7 @@
 package moreland.base64.cli;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,17 +41,17 @@ public class Base64EncoderService implements EncoderService {
      * {@inheritDoc}
      */
     @Override
-    public String encode(byte[] source) {
+    public byte[] encode(byte[] source) {
         GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
 
-        return Base64.getEncoder().encodeToString(source);
+        return Base64.getEncoder().encode(source);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String encode(Stream<Byte> source) {
+    public byte[] encode(Stream<Byte> source) {
         GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
 
         var sourceArray = source.toArray(Byte[]::new);
@@ -61,9 +62,7 @@ public class Base64EncoderService implements EncoderService {
     }
 
     /**
-     * Encode a Stream of Bytes to base64 encoded string
-     * @param streamSource 
-     * @return base64 encoded String
+     * {@inheritDoc}
      */
     @Override
     public String encode(InputStream streamSource) {
@@ -97,8 +96,17 @@ public class Base64EncoderService implements EncoderService {
     @Override
     public String encode(String source) {
         GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
-        return encode(source.getBytes());
+        return new String(encode(source.getBytes()), StandardCharsets.UTF_8);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean encode(InputStream inputStream, OutputStream outputStream) {
+        return mapStream(inputStream, outputStream, (byte[] source) -> encode(source));
+    }
+
 
     /**
      * {@inheritDoc}
@@ -149,7 +157,6 @@ public class Base64EncoderService implements EncoderService {
             logger.error(e.getMessage());
             return new byte[0];
         }
-
     }
 
     @Override
@@ -158,5 +165,44 @@ public class Base64EncoderService implements EncoderService {
         if (bytes.length == 0)
             return "";
         return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public byte[] decode(byte[] source) {
+        GuardAgainst.argumentBeingNull(source, SOURCE_ARGUMENT_NAME);
+        return Base64.getDecoder().decode(source);
+    }
+
+    @Override
+    public boolean decode(InputStream inputStream, OutputStream outputStream) {
+        return mapStream(inputStream, outputStream, (byte[] source) -> decode(source));
+    }
+
+    @FunctionalInterface
+    private interface Base64StreamMapper {
+        byte[] map(byte[] source);
+    }
+
+    private boolean mapStream(InputStream inputStream, OutputStream outputStream, Base64StreamMapper mapper) {
+        GuardAgainst.argumentBeingNull(inputStream, "inputStream");
+        GuardAgainst.argumentBeingNull(outputStream, "outputStream");
+
+        var buffer = new byte[DECODE_BUFFER_SIZE];
+        try {
+
+            while (inputStream.available() > 0) {
+                int read;
+                if ((read = inputStream.read(buffer)) <= 0)
+                    break;
+
+                outputStream.write(mapper.map(buffer), 0, read);
+            }
+            outputStream.flush();
+            return true;
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return false;
+        }
     }
 }

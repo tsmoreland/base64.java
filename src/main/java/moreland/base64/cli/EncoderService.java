@@ -14,6 +14,7 @@
 package moreland.base64.cli;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.stream.Stream;
 
 public interface EncoderService {
@@ -23,14 +24,14 @@ public interface EncoderService {
      * @param source
      * @return base64 encoded String
      */
-    String encode(byte[] source);
+    byte[] encode(byte[] source);
 
     /**
      * Encode a Stream of Bytes to base64 encoded string
      * @param source
      * @return base64 encoded String
      */
-    String encode(Stream<Byte> source);
+    byte[] encode(Stream<Byte> source);
 
     /**
      * Encode a Stream of Bytes to base64 encoded string
@@ -38,6 +39,13 @@ public interface EncoderService {
      * @return base64 encoded String
      */
     String encode(InputStream streamSource);
+
+    /**
+     * Encode a Stream of Bytes to base64 encoded string
+     * @param streamSource 
+     * @return true on success; otherwise false
+     */
+    boolean encode(InputStream inputStream, OutputStream outputStream);
 
     /**
      * Encode a String of a base64 encoded string
@@ -52,6 +60,14 @@ public interface EncoderService {
      * @return byte array of decoded {@code source}
      */
     byte[] decode(String source);
+
+    /**
+     * Decode a Bas64 encoded String to byte array
+     * @param source
+     * @return byte array of decoded {@code source}
+     */
+    byte[] decode(byte[] source);
+
     /**
      * Decode a Bas64 encoded String to String
      * @param source
@@ -65,6 +81,13 @@ public interface EncoderService {
      * @return byte array of decoded {@code source}
      */
     byte[] decode(InputStream source);
+
+    /**
+     * Decode a Bas64 encoded String to byte array
+     * @param source
+     * @return byte array of decoded {@code source}
+     */
+    boolean decode(InputStream inputStream, OutputStream outputStream);
 
     /**
      * Decode a Bas64 encoded String to byte array

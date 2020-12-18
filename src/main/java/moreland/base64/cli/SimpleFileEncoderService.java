@@ -13,10 +13,11 @@
 package moreland.base64.cli;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -35,11 +36,6 @@ public class SimpleFileEncoderService implements FileEncoderService {
     private EncoderService encoderService;
     private Logger logger = LoggerFactory.getLogger(SimpleFileEncoderService.class);
     private static final String FILE_NOT_FOUND = "File not found";
-
-    @FunctionalInterface
-    private interface EncodeDecodeProcessor {
-        public <T> T process(InputStream source);
-    }
 
     @Autowired
     public SimpleFileEncoderService(EncoderService encoderService) {
@@ -85,11 +81,40 @@ public class SimpleFileEncoderService implements FileEncoderService {
 
     @Override
     public boolean encode(File inputFile, File outputFile) {
-        return false;
+        if (!inputFile.exists()) {
+            logger.error(FILE_NOT_FOUND);
+            return false;
+        }
+
+        try (var inputFileStream = new FileInputStream(inputFile);
+             var bufferedInputStream = new BufferedInputStream(inputFileStream);
+             var outputFileStream = new FileOutputStream(outputFile);
+             var bufferedOutputStream = new BufferedOutputStream(outputFileStream);) {
+
+            return encoderService.encode(bufferedInputStream, bufferedOutputStream);
+
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public boolean decode(File inputFile, File outputFile) {
-        return false;
+        if (!inputFile.exists()) {
+            logger.error(FILE_NOT_FOUND);
+            return false;
+        }
+        try (var inputFileStream = new FileInputStream(inputFile);
+             var bufferedInputStream = new BufferedInputStream(inputFileStream);
+             var outputFileStream = new FileOutputStream(outputFile);
+             var bufferedOutputStream = new BufferedOutputStream(outputFileStream);) {
+
+            return encoderService.decode(bufferedInputStream, bufferedOutputStream);
+
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            return false;
+        }
     }
 }
