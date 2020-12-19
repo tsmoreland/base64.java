@@ -34,23 +34,28 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 public class SimpleClipboardService implements ClipboardService {
     
     private Logger logger = LoggerFactory.getLogger(SimpleClipboardService.class);
-    private Clipboard clipboard;
+    private Optional<Clipboard> clipboard;
 
     public SimpleClipboardService() {
-        super();
-        clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        try {
+            clipboard = Optional.of(Toolkit.getDefaultToolkit().getSystemClipboard());
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            clipboard = Optional.empty();
+        }
     }
 
 
     @Override
     public boolean write(String source) {
-        if (source == null) {
+        if (source == null || !clipboard.isPresent()) {
             return false;
         }
 
         try {
             var contents = new StringSelection(source);
-            clipboard.setContents(contents, null);
+            clipboard.get().setContents(contents, null);
             return true;
         } catch (IllegalStateException e) {
             logger.error(e.getMessage());
@@ -60,7 +65,7 @@ public class SimpleClipboardService implements ClipboardService {
 
     @Override
     public boolean write(byte[] source) {
-        if (source == null) {
+        if (source == null || !clipboard.isPresent()) {
             return false;
         }
         return write(new String(source, StandardCharsets.UTF_8));
@@ -68,6 +73,9 @@ public class SimpleClipboardService implements ClipboardService {
 
     @Override
     public boolean write(InputStream source) {
+        if (source == null || !clipboard.isPresent()) {
+            return false;
+        }
         try {
             return write(new String(source.readAllBytes(), StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -78,7 +86,11 @@ public class SimpleClipboardService implements ClipboardService {
 
     @Override
     public Optional<String> readAsString() {
-        var contents = clipboard.getContents(null);
+        if (!clipboard.isPresent()) {
+            return Optional.empty();
+        }
+
+        var contents = clipboard.get().getContents(null);
         if (!contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
             return Optional.empty();
         }
