@@ -38,7 +38,7 @@ public interface EncoderService {
      * @param streamSource 
      * @return base64 encoded String
      */
-    String encode(InputStream streamSource);
+    byte[] encode(InputStream streamSource);
 
     /**
      * Encode a Stream of Bytes to base64 encoded string

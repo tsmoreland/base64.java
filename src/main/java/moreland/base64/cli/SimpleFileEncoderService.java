@@ -44,7 +44,7 @@ public class SimpleFileEncoderService implements FileEncoderService {
     }
 
     @Override
-    public Optional<String> encode(File file) {
+    public Optional<byte[]> encode(File file) {
         if (!file.exists()) {
             logger.error(FILE_NOT_FOUND);
             return Optional.empty();

@@ -10,16 +10,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-package moreland.base64.cli;
+package moreland.base64.cli.internal;
 
-import java.io.File;
-import java.util.Optional;
-
-public interface FileEncoderService {
-    
-    Optional<byte[]> encode(File file);
-    Optional<byte[]> decode(File file);
-
-    boolean encode(File inputFile, File outputFile);
-    boolean decode(File inputFile, File outputFile);
+@FunctionalInterface
+public interface FileToFileEncodingConverter {
+    boolean process(final String inputFilename, final String outputFilename);    
 }

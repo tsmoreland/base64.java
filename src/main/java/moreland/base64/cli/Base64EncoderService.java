@@ -65,7 +65,7 @@ public class Base64EncoderService implements EncoderService {
      * {@inheritDoc}
      */
     @Override
-    public String encode(InputStream streamSource) {
+    public byte[] encode(InputStream streamSource) {
         GuardAgainst.argumentBeingNull(streamSource, "streamSource");
 
         var buffer = new byte[ENCODE_BUFFER_SIZE];
@@ -83,10 +83,10 @@ public class Base64EncoderService implements EncoderService {
                 }
             }
 
-            return builder.toString();
+            return builder.toString().getBytes();
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return "";
+            return new byte[0];
         }
     }
 
