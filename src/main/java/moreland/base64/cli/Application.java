@@ -77,23 +77,34 @@ public class Application implements CommandLineRunner {
     }
 
     private boolean encode(final Optional<String> inputFilename, final Optional<String> outputFilename) {
-        return process(inputFilename, outputFilename, this::encodeFromFileToFile, this::encodeFromFile);
+        return process(inputFilename, outputFilename, 
+            this::encodeFromFileToFile, 
+            this::encodeFromFile, 
+            this::encodeFromStandardInputToFile, 
+            this::encodeFromStandardInputToStandardOutput);
     }
     private boolean decode(final Optional<String> inputFilename, final Optional<String> outputFilename) {
-        return process(inputFilename, outputFilename, this::decodeFromFileToFile, this::decodeFromFile);
+        return process(inputFilename, outputFilename, 
+            this::decodeFromFileToFile, 
+            this::decodeFromFile, 
+            this::decodeFromStandardInputToFile, 
+            this::decodeFromStandardInputToStandardOutput);
     }
 
     private boolean process(final Optional<String> inputFilename, final Optional<String> outputFilename, 
-        FileToFileEncodingConverter fileToFile, FileEncodingConverter fileEncodingConverter) {
+        FileToFileEncodingConverter fileToFile, FileEncodingConverter fromFileEncodingConverter, 
+        FileEncodingConverter toFileEncodingConverter, Runnable encodingConverter) {
 
         if (inputFilename.isPresent()) {
             if (outputFilename.isPresent()) {
                 return fileToFile.process(inputFilename.get(), outputFilename.get());
             } else {
-               return fileEncodingConverter.process(inputFilename.get());
+               return fromFileEncodingConverter.process(inputFilename.get());
             }
+        } else if (outputFilename.isPresent()) {
+            return toFileEncodingConverter.process(outputFilename.get());
         } else {
-            // TODO: add support for in/out when filenames not given, either allow pipe from stdin/stdout or clipboard
+            encodingConverter.run();
             return false;
         }
     }
@@ -111,6 +122,12 @@ public class Application implements CommandLineRunner {
     private boolean encodeFromFileToFile(final String inputFilename, final String outputFilename) {
         return fileEncoderService.encode(new File(inputFilename), new File(outputFilename));
     }
+    private boolean encodeFromStandardInputToFile(final String outputFilename) {
+        return false;
+    }
+    private boolean encodeFromStandardInputToStandardOutput() {
+        return false;
+    }
 
     @SuppressWarnings({"java:S106"})
     private boolean decodeFromFile(final String inputFilename) {
@@ -124,6 +141,12 @@ public class Application implements CommandLineRunner {
     }
     private boolean decodeFromFileToFile(final String inputFilename, final String outputFilename) {
         return fileEncoderService.decode(new File(inputFilename), new File(outputFilename));
+    }
+    private boolean decodeFromStandardInputToFile(final String outputFilename) {
+        return false;
+    }
+    private boolean decodeFromStandardInputToStandardOutput() {
+        return false;
     }
 
 }
