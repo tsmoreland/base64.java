@@ -13,6 +13,7 @@
 package moreland.base64.cli;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Optional;
 
 public interface FileEncoderService {
@@ -22,4 +23,7 @@ public interface FileEncoderService {
 
     boolean encode(File inputFile, File outputFile);
     boolean decode(File inputFile, File outputFile);
+
+    boolean encode(InputStream source, File destination);
+    boolean decode(InputStream source, File destination);
 }

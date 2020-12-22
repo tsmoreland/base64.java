@@ -35,12 +35,15 @@ public class Application implements CommandLineRunner {
     @Autowired
     private FileEncoderService fileEncoderService;
 
+    @Autowired
+    private EncoderService encoderService;
+
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 
     @Override
-    @SuppressWarnings({"java:S2589"}) // warning doesn't yet see result from switch expression
+    @SuppressWarnings({ "java:S2589" }) // warning doesn't yet see result from switch expression
     public void run(String... args) throws Exception {
         logger.info("provided arguments: {}", args.length);
 
@@ -63,8 +66,7 @@ public class Application implements CommandLineRunner {
         if (args.length > 2)
             outputFilename = Optional.of(args[2]);
 
-
-        boolean result = switch(operation) {
+        boolean result = switch (operation) {
             case ENCODE -> encode(inputFilename, outputFilename);
             case DECODE -> decode(inputFilename, outputFilename);
             case UNSUPPORTED -> false;
@@ -77,29 +79,24 @@ public class Application implements CommandLineRunner {
     }
 
     private boolean encode(final Optional<String> inputFilename, final Optional<String> outputFilename) {
-        return process(inputFilename, outputFilename, 
-            this::encodeFromFileToFile, 
-            this::encodeFromFile, 
-            this::encodeFromStandardInputToFile, 
-            this::encodeFromStandardInputToStandardOutput);
-    }
-    private boolean decode(final Optional<String> inputFilename, final Optional<String> outputFilename) {
-        return process(inputFilename, outputFilename, 
-            this::decodeFromFileToFile, 
-            this::decodeFromFile, 
-            this::decodeFromStandardInputToFile, 
-            this::decodeFromStandardInputToStandardOutput);
+        return process(inputFilename, outputFilename, this::encodeFromFileToFile, this::encodeFromFile,
+                this::encodeFromStandardInputToFile, this::encodeFromStandardInputToStandardOutput);
     }
 
-    private boolean process(final Optional<String> inputFilename, final Optional<String> outputFilename, 
-        FileToFileEncodingConverter fileToFile, FileEncodingConverter fromFileEncodingConverter, 
-        FileEncodingConverter toFileEncodingConverter, Runnable encodingConverter) {
+    private boolean decode(final Optional<String> inputFilename, final Optional<String> outputFilename) {
+        return process(inputFilename, outputFilename, this::decodeFromFileToFile, this::decodeFromFile,
+                this::decodeFromStandardInputToFile, this::decodeFromStandardInputToStandardOutput);
+    }
+
+    private boolean process(final Optional<String> inputFilename, final Optional<String> outputFilename,
+            FileToFileEncodingConverter fileToFile, FileEncodingConverter fromFileEncodingConverter,
+            FileEncodingConverter toFileEncodingConverter, Runnable encodingConverter) {
 
         if (inputFilename.isPresent()) {
             if (outputFilename.isPresent()) {
                 return fileToFile.process(inputFilename.get(), outputFilename.get());
             } else {
-               return fromFileEncodingConverter.process(inputFilename.get());
+                return fromFileEncodingConverter.process(inputFilename.get());
             }
         } else if (outputFilename.isPresent()) {
             return toFileEncodingConverter.process(outputFilename.get());
@@ -109,8 +106,7 @@ public class Application implements CommandLineRunner {
         }
     }
 
-
-    @SuppressWarnings({"java:S106"})
+    @SuppressWarnings({ "java:S106" })
     private boolean encodeFromFile(final String inputFilename) {
         var encoded = fileEncoderService.encode(new File(inputFilename));
         if (!encoded.isPresent())
@@ -119,14 +115,17 @@ public class Application implements CommandLineRunner {
         System.out.println(encoded.get());
         return encoded.isPresent();
     }
+
     private boolean encodeFromFileToFile(final String inputFilename, final String outputFilename) {
         return fileEncoderService.encode(new File(inputFilename), new File(outputFilename));
     }
+
     private boolean encodeFromStandardInputToFile(final String outputFilename) {
-        return false;
+        return fileEncoderService.encode(System.in, new File(outputFilename));
     }
+    @SuppressWarnings({"java:S106"})
     private boolean encodeFromStandardInputToStandardOutput() {
-        return false;
+        return encoderService.encode(System.in, System.out);
     }
 
     @SuppressWarnings({"java:S106"})
@@ -143,10 +142,11 @@ public class Application implements CommandLineRunner {
         return fileEncoderService.decode(new File(inputFilename), new File(outputFilename));
     }
     private boolean decodeFromStandardInputToFile(final String outputFilename) {
-        return false;
+        return fileEncoderService.decode(System.in, new File(outputFilename));
     }
+    @SuppressWarnings({ "java:S106" })
     private boolean decodeFromStandardInputToStandardOutput() {
-        return false;
+        return encoderService.decode(System.in, System.out);
     }
 
 }

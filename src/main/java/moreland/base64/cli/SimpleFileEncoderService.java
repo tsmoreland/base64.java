@@ -18,7 +18,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,78 +46,86 @@ public class SimpleFileEncoderService implements FileEncoderService {
         this.encoderService = encoderService;
     }
 
-    @Override
-    public Optional<byte[]> encode(File file) {
-        if (!file.exists()) {
+    @FunctionalInterface
+    private interface StreamToStreamProcessor {
+        boolean process(InputStream source, OutputStream destination);
+    }
+
+    private Optional<byte[]> processFile(File source, Function<InputStream, byte[]> processor) {
+        if (!source.exists()) {
             logger.error(FILE_NOT_FOUND);
             return Optional.empty();
         }
 
-        try (var fileStream = new FileInputStream(file);
-             var bufferedInputStream = new BufferedInputStream(fileStream)) {
+        try (   var fileStream = new FileInputStream(source);
+                var bufferedInputStream = new BufferedInputStream(fileStream)) {
 
-            return Optional.of(encoderService.encode(bufferedInputStream));
+            return Optional.of(processor.apply(bufferedInputStream));
 
         } catch (IOException e) {
             logger.error(e.getMessage());
             return Optional.empty();
         }
+    }
+    private boolean processFileToFile(File source, File destinatation, StreamToStreamProcessor processor) {
+        if (!source.exists()) {
+            logger.error(FILE_NOT_FOUND);
+            return false;
+        }
+
+        try (   var inputFileStream = new FileInputStream(source);
+                var bufferedInputStream = new BufferedInputStream(inputFileStream);) {
+
+            return processStreamToFile(bufferedInputStream, destinatation, processor);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            return false;
+        }
+    }
+    private boolean processStreamToFile(InputStream source, File destination, StreamToStreamProcessor processor) {
+        GuardAgainst.argumentBeingNull(source, "source");
+        GuardAgainst.argumentBeingNull(destination, "destination");
+
+        try (var bufferedInputStream = new BufferedInputStream(System.in);
+             var outputFileStream = new FileOutputStream(destination);
+             var bufferedOutputStream = new BufferedOutputStream(outputFileStream);) {
+
+            return processor.process(bufferedInputStream, bufferedOutputStream);
+
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public Optional<byte[]> encode(File file) {
+        return processFile(file, encoderService::encode);
     }
 
     @Override
     public Optional<byte[]> decode(File file) {
-        if (!file.exists()) {
-            logger.error(FILE_NOT_FOUND);
-            return Optional.empty();
-        }
-
-        try (var fileStream = new FileInputStream(file);
-             var bufferedInputStream = new BufferedInputStream(fileStream)) {
-
-            return Optional.of(encoderService.decode(bufferedInputStream));
-
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            return Optional.empty();
-        }
+        return processFile(file, encoderService::decode);
     }
 
     @Override
     public boolean encode(File inputFile, File outputFile) {
-        if (!inputFile.exists()) {
-            logger.error(FILE_NOT_FOUND);
-            return false;
-        }
-
-        try (var inputFileStream = new FileInputStream(inputFile);
-             var bufferedInputStream = new BufferedInputStream(inputFileStream);
-             var outputFileStream = new FileOutputStream(outputFile);
-             var bufferedOutputStream = new BufferedOutputStream(outputFileStream);) {
-
-            return encoderService.encode(bufferedInputStream, bufferedOutputStream);
-
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            return false;
-        }
+        return processFileToFile(inputFile, outputFile, encoderService::encode);
     }
 
     @Override
     public boolean decode(File inputFile, File outputFile) {
-        if (!inputFile.exists()) {
-            logger.error(FILE_NOT_FOUND);
-            return false;
-        }
-        try (var inputFileStream = new FileInputStream(inputFile);
-             var bufferedInputStream = new BufferedInputStream(inputFileStream);
-             var outputFileStream = new FileOutputStream(outputFile);
-             var bufferedOutputStream = new BufferedOutputStream(outputFileStream);) {
-
-            return encoderService.decode(bufferedInputStream, bufferedOutputStream);
-
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            return false;
-        }
+        return processFileToFile(inputFile, outputFile, encoderService::decode);
     }
+
+    @Override
+    public boolean encode(InputStream source, File destination) {
+        return processStreamToFile(source, destination, encoderService::encode);
+    }
+
+    @Override
+    public boolean decode(InputStream source, File destination) {
+        return processStreamToFile(source, destination, encoderService::decode);
+    }
+
 }
