@@ -404,3 +404,5 @@ build/
 
 ### VS Code ###
 .vscode/
+
+.dccache
