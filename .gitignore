@@ -406,3 +406,6 @@ build/
 .vscode/
 
 .dccache
+
+# maven wrapper
+.mvn
