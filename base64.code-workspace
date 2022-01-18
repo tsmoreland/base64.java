@@ -15,7 +15,8 @@
       ".idea": true,
       ".settings": true,
       ".project": true,
-      ".gitignore": true
+      ".gitignore": true,
+      ".mvn": true
     },
     "[java]": {
       "editor.insertSpaces": true,
