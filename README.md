@@ -1,6 +1,6 @@
 # Base64 CLI
 
-[![Open in Visual Studio Code](https://img.shields.io/static/v1?logo=visualstudiocode&label=&message=Open%20in%20Visual%20Studio%20Code&labelColor=2c2c32&color=007acc&logoColor=007acc)](https://open.vscode.dev/tsmoreland/base64.java)
+[![Open in Visual Studio Code](https://raw.githubusercontent.com/tsmoreland/tsmoreland/main/img/open-with-vscode.svg)](https://open.vscode.dev/tsmoreland/base64.java)
 ![Java CI with Maven](https://github.com/tsmoreland/base64.java/workflows/Java%20CI%20with%20Maven/badge.svg)
 
 Simple command line utility intended to take a file source and encode to or decode from Base64
