@@ -32,11 +32,13 @@ public class Application implements CommandLineRunner {
 
     private Logger logger = LoggerFactory.getLogger(Application.class);
 
-    @Autowired
     private FileEncoderService fileEncoderService;
-
-    @Autowired
     private EncoderService encoderService;
+
+    public Application(FileEncoderService fileEncoderService, EncoderService encoderService) {
+        this.fileEncoderService = fileEncoderService;
+        this.encoderService = encoderService;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
